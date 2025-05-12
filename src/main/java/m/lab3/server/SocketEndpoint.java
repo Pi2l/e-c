@@ -1,6 +1,7 @@
 package m.lab3.server;
 
 import lombok.RequiredArgsConstructor;
+import m.lab3.service.RsaKeyService;
 import m.lab3.service.SocketMessageService;
 
 @RequiredArgsConstructor
@@ -10,7 +11,7 @@ public class SocketEndpoint {
 
   public void onInit(String message, SessionInfo sessionInfo) {
     System.out.printf("Initializing[%s]: %s%n", sessionInfo.getClientId(), message);
-    messageService.sendMessage("RSA public key: " + message);
+    messageService.sendMessage( RsaKeyService.getPublicKeyBase64() );
   }
 
   public void processMessage(String message, SessionInfo sessionInfo) {
