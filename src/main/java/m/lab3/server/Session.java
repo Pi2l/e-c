@@ -7,14 +7,14 @@ import java.util.Objects;
 
 @Getter
 @AllArgsConstructor
-public class SessionInfo {
+public class Session {
 
   private String clientId;
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (!(o instanceof SessionInfo that)) return false;
+    if (!(o instanceof Session that)) return false;
 
     return Objects.equals(clientId, that.clientId);
   }

@@ -1,6 +1,7 @@
 package m.lab3.server;
 
 import lombok.RequiredArgsConstructor;
+import m.lab3.service.MessageProcessor;
 import m.lab3.service.SocketMessageService;
 
 import java.io.IOException;
@@ -11,15 +12,16 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class ClientHandler {
 
-  private static final Set<SessionInfo> SESSION_INFOS = ConcurrentHashMap.newKeySet();
+  private static final Set<Session> SESSION_INFOS = ConcurrentHashMap.newKeySet();
+  private static final MessageProcessor MESSAGE_PROCESSOR = new MessageProcessor();
 
   private final Socket clientSocket;
 
   public void run() {
     try ( SocketMessageService messageService = new SocketMessageService(clientSocket) ) {
-      SocketEndpoint endpoint = new SocketEndpoint( messageService );
+      SocketEndpoint endpoint = new SocketEndpoint(messageService, MESSAGE_PROCESSOR);
 
-      var clientId = new SessionInfo(getClientId());
+      var clientId = new Session(getClientId());
       System.out.println("ClientId: " + clientId);
 
       String msg;

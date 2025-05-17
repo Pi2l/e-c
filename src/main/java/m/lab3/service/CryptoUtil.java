@@ -2,6 +2,7 @@ package m.lab3.service;
 
 import lombok.SneakyThrows;
 
+import javax.crypto.Cipher;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyFactory;
@@ -11,7 +12,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
-public class RsaKeyService {
+public class CryptoUtil {
   private static final String PRIVATE_KEY_PATH = "src/main/resources/keys/private_key.pem";
   private static final String PUBLIC_KEY_PATH = "src/main/resources/keys/public_key.pem";
 
@@ -49,4 +50,15 @@ public class RsaKeyService {
     return Base64.getEncoder().encodeToString(publicKey.getEncoded());
   }
 
+  public static String decryptRsa(String encryptedMessage) {
+    try {
+      byte[] decoded = Base64.getDecoder().decode(encryptedMessage);
+      Cipher cipher = Cipher.getInstance("RSA");
+      cipher.init(Cipher.DECRYPT_MODE, privateKey);
+      byte[] decrypted = cipher.doFinal(decoded);
+      return new String(decrypted);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to decrypt message", e);
+    }
+  }
 }
