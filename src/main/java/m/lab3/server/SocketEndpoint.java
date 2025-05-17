@@ -6,6 +6,7 @@ import m.lab3.model.SecureSegment;
 import m.lab3.model.ClientInfo;
 import m.lab3.model.Segment;
 import m.lab3.service.CryptoUtil;
+import m.lab3.service.DocumentService;
 import m.lab3.service.MessageProcessor;
 import m.lab3.service.SocketMessageService;
 
@@ -39,7 +40,7 @@ public class SocketEndpoint {
     try {
       segment = messageProcessor.processMessage(decryptedMessage);
     } catch (RuntimeException e) {
-      sendError(e.getMessage(), clientInfo);
+      sendMessage(e.getMessage(), clientInfo);
       return;
     }
 
@@ -48,17 +49,18 @@ public class SocketEndpoint {
       SESSION_INFO.put(clientId, ClientInfo.builder().clientId(clientId)
               .sessionKey(secureSegment.getKey()).keyIV(secureSegment.getIv()).build());
     } else if (segment instanceof DocumentSegment documentSegment) {
-      documentSegment = null;// TODO: form json from documentSegment
+      String json = DocumentService.getJson(documentSegment);
+      sendMessage(json, clientInfo);
     }
 
   }
 
-  public void onClose(Session sessionInfo) {
-    System.out.printf("Closing[%s]", sessionInfo.getClientId());
-    messageService.sendMessage("Closing: ");
+  public void onClose(Session session) {
+    System.out.printf("Closing[%s]", session.getClientId());
+    sendMessage("Closing: ", SESSION_INFO.get(session.getClientId()));
   }
 
-  private void sendError(String message, ClientInfo clientInfo) {
+  private void sendMessage(String message, ClientInfo clientInfo) {
     if (clientInfo != null) {
       messageService.sendMessage(CryptoUtil.encryptTripleDes(message, clientInfo.getSessionKey(), clientInfo.getKeyIV()));
       return;
