@@ -22,7 +22,7 @@ import java.util.function.BiConsumer;
   КІН+0008' – кінець повідомлення+кількість сегментів у ньому*/
 @Getter
 @Setter
-public class SecureSegment {
+public class SecureSegment extends Segment {
   public static final Map<String, BiConsumer<SecureSegment, String>> SEGMENT_SETTERS = Map.of(
           "ЗАГ", SecureSegment::setHeader,
           "ПОЧ", SecureSegment::setStart,
@@ -34,14 +34,9 @@ public class SecureSegment {
           "КІП", SecureSegment::setEnd,
           "КІН", SecureSegment::setEndMessage
   );
-  private String header;
-  private String start;
   private String startDateTime;
   private String messageNumber;
   private String cryptoAlgorithm;
   private String key;
   private String iv;
-  private String end;
-  private String endMessage;
-
 }

@@ -1,9 +1,6 @@
 package m.lab3.service;
 
-import m.lab3.model.MessageType;
-import m.lab3.model.SecureSegment;
-import m.lab3.model.SegmentKey;
-import m.lab3.model.SegmentPart;
+import m.lab3.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,15 +9,35 @@ import java.util.function.BiConsumer;
 public class MessageProcessor {
   private static final String MESSAGE_DELIMITER = "'";
 
-  public SecureSegment processSecureMessage(String message) {
+  public Segment processMessage(String message) {
     List<SegmentPart> parts = parseSegment(message);
     MessageType messageType = getMessageType(parts);
 
-    if (messageType != MessageType.ENCRYPTION) {
-      System.out.println("Message is not encryption");
-      return null;
+    if (messageType == MessageType.ENCRYPTION) {
+      return processSecureMessage(parts);
+    } else if (messageType == MessageType.DOCUMENT) {
+      return processDocumentMessage(parts);
+    } else {
+      throw new RuntimeException("Unknown message type");
     }
+  }
 
+  private DocumentSegment processDocumentMessage(List<SegmentPart> parts) {
+    List<SegmentPart> filteredParts = validateSegmentsCount(parts);
+
+    DocumentSegment documentSegment = new DocumentSegment();
+    for (SegmentPart part : filteredParts) {
+      BiConsumer<DocumentSegment, String> setter = DocumentSegment.SEGMENT_SETTERS.get(part.getKey());
+      if (setter != null) {
+        setter.accept(documentSegment, part.getValue());
+      } else {
+        System.out.println("Unknown segment key: " + part.getKey());
+      }
+    }
+    return documentSegment;
+  }
+
+  private SecureSegment processSecureMessage(List<SegmentPart> parts) {
     List<SegmentPart> filteredParts = validateSegmentsCount(parts);
 
     SecureSegment secureSegment = new SecureSegment();
@@ -63,7 +80,6 @@ public class MessageProcessor {
     return filteredParts;
   }
 
-  // приклад повідомлення: ЗАГ+0002'ПОЧ'ДЧП+20100910:1048:24'СУМ+10000'КІП'КІН+0016
   private List<SegmentPart> parseSegment(String message) {
     List<SegmentPart> parts = new ArrayList<>();
     String[] segments = message.split(MESSAGE_DELIMITER);
@@ -93,4 +109,17 @@ public class MessageProcessor {
       return MessageType.DOCUMENT;
     }
   }
+
+  private List<SegmentPart> getFilteredParts(String message, MessageType type) {
+    List<SegmentPart> parts = parseSegment(message);
+    MessageType messageType = getMessageType(parts);
+
+    if (messageType != type) {
+      System.out.println("Message is not %s message".formatted(type.name()));
+      throw new RuntimeException("Invalid %S message".formatted(type.name()));
+    }
+
+    return validateSegmentsCount(parts);
+  }
+
 }

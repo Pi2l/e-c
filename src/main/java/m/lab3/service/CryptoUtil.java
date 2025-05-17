@@ -3,11 +3,11 @@ package m.lab3.service;
 import lombok.SneakyThrows;
 
 import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.KeyFactory;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
@@ -60,5 +60,55 @@ public class CryptoUtil {
     } catch (Exception e) {
       throw new RuntimeException("Failed to decrypt message", e);
     }
+  }
+
+  public static String encryptRsa(String message) {
+    try {
+      Cipher cipher = Cipher.getInstance("RSA");
+      cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+      byte[] encrypted = cipher.doFinal(message.getBytes());
+      return Base64.getEncoder().encodeToString(encrypted);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to encrypt message", e);
+    }
+  }
+
+  // 3DES (2 ключі)
+  public static String decryptTripleDes(String encryptedMessage, String sessionKey, String iV) {
+    try {
+      byte[] decoded = Base64.getDecoder().decode(encryptedMessage);
+      Cipher cipher = Cipher.getInstance("DESede/CBC/PKCS5Padding");
+      cipher.init(Cipher.DECRYPT_MODE, CryptoUtil.getKey(sessionKey), CryptoUtil.getIV(iV));
+      byte[] decrypted = cipher.doFinal(decoded);
+      return new String(decrypted);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to decrypt message", e);
+    }
+  }
+
+  public static String encryptTripleDes(String message, String sessionKey, String iV) {
+    try {
+      Cipher cipher = Cipher.getInstance("DESede/CBC/PKCS5Padding");
+      cipher.init(Cipher.ENCRYPT_MODE, CryptoUtil.getKey(sessionKey), CryptoUtil.getIV(iV));
+      byte[] encrypted = cipher.doFinal(message.getBytes());
+      return Base64.getEncoder().encodeToString(encrypted);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to encrypt message", e);
+    }
+  }
+
+  private static Key getKey(String sessionKey) {
+    byte[] keyBytes = Base64.getDecoder().decode(sessionKey);
+
+    // 2-key 3DES: з 16 байтів треба зробити 24 байти, дублюючи перші 8 байтів
+    byte[] fullKey = new byte[24];
+    System.arraycopy(keyBytes, 0, fullKey, 0, 16);
+    System.arraycopy(keyBytes, 0, fullKey, 16, 8); // дублювання першого ключа K1
+    return new SecretKeySpec(fullKey, "DESede");
+  }
+
+  private static IvParameterSpec getIV(String iV) {
+    byte[] ivBytes = Base64.getDecoder().decode(iV);
+    return new IvParameterSpec(ivBytes);
   }
 }
