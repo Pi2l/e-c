@@ -27,7 +27,7 @@ public class MessageProcessor {
 
     DocumentSegment documentSegment = new DocumentSegment();
     for (SegmentPart part : filteredParts) {
-      BiConsumer<DocumentSegment, String> setter = DocumentSegment.SEGMENT_SETTERS.get(part.getKey());
+      BiConsumer<DocumentSegment, String> setter = DocumentSegment.SEGMENT_SETTERS.get(part.getKey().trim());
       if (setter != null) {
         setter.accept(documentSegment, part.getValue());
       } else {
@@ -84,7 +84,7 @@ public class MessageProcessor {
     List<SegmentPart> parts = new ArrayList<>();
     String[] segments = message.split(MESSAGE_DELIMITER);
     for (String segment : segments) {
-      String[] keyValue = segment.split("\\+");
+      String[] keyValue = segment.split("\\+", 2);
       if (keyValue.length == 2) {
         SegmentPart part = new SegmentPart();
         part.setKey(keyValue[0]);

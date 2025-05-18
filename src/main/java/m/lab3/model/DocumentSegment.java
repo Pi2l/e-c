@@ -53,6 +53,7 @@ public class DocumentSegment extends Segment {
   }
 
   private String startDateTime;
+  @com.fasterxml.jackson.annotation.JsonIgnore
   private DocumentType documentType;
 
   private String payerName;
@@ -70,6 +71,23 @@ public class DocumentSegment extends Segment {
   private String amount;
 
   public void setDocumentType(String documentType) {
-    this.documentType = DocumentType.valueOf(documentType);
+    if (documentType == null || documentType.isEmpty()) {
+      throw new IllegalArgumentException("Document type cannot be null or empty");
+    }
+    switch (documentType) {
+      case "ОПЛ" -> this.documentType = DocumentType.PAYMENT_ORDER;
+      case "НАК" -> this.documentType = DocumentType.INVOICE;
+      default -> throw new IllegalArgumentException("Unknown document type: " + documentType);
+    }
+  }
+
+  @com.fasterxml.jackson.annotation.JsonProperty("documentType")
+  public String getDocumentTypeString() {
+    return switch (documentType) {
+      case PAYMENT_ORDER -> "ОПЛ";
+      case INVOICE -> "НАК";
+      case null -> null;
+      default -> null;
+    };
   }
 }

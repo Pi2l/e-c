@@ -26,7 +26,7 @@ public class SocketEndpoint {
   }
 
   public void processMessage(String message, Session session) {
-    System.out.printf("Processing[%s]: %s", session.getClientId(), message);
+    System.out.printf("Processing[%s]: %s%n", session.getClientId(), message);
     ClientInfo clientInfo = SESSION_INFO.get(session.getClientId());
 
     String decryptedMessage;
@@ -35,6 +35,8 @@ public class SocketEndpoint {
     } else {
       decryptedMessage = CryptoUtil.decryptTripleDes(message, clientInfo.getSessionKey(), clientInfo.getKeyIV());
     }
+
+    System.out.printf("Decrypted[%s]: %s%n", session.getClientId(), decryptedMessage);
 
     Segment segment;
     try {
@@ -65,6 +67,6 @@ public class SocketEndpoint {
       messageService.sendMessage(CryptoUtil.encryptTripleDes(message, clientInfo.getSessionKey(), clientInfo.getKeyIV()));
       return;
     }
-    messageService.sendMessage(CryptoUtil.encryptRsa(message));
+    messageService.sendMessage(message);
   }
 }
